@@ -1,0 +1,47 @@
+name: data_platform
+version: "0.1.0"
+config-version: 2
+
+profile: data_platform
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+check-paths: ["checks"]
+
+clean-targets: ["target", "dbt_packages"]
+
+info_schema:
+  version: 1
+
+vars:
+  load_sample_data: false
+
+# Defaults are set per directory here; only exceptions are set on a model.
+# Static analysis: set DBT_ENV_STATIC_ANALYSIS=strict in development (requires
+# `dbt login`); leave unset in deployment to use baseline.
+models:
+  data_platform:
+    +static_analysis: "{{ env_var('DBT_ENV_STATIC_ANALYSIS', 'baseline') }}"
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts
+
+# Seeds are for lookup tables. Sample raw data is opt-in and never loaded
+# into production: dbt seed --vars '{load_sample_data: true}'
+seeds:
+  data_platform:
+    sample_data:
+      +enabled: "{{ var('load_sample_data', false) }}"
+      +schema: raw
+
+dispatch:
+  - macro_namespace: data_platform
+    search_order: ["data_platform"]

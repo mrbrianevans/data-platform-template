@@ -1,0 +1,21 @@
+name: images
+
+on:
+  pull_request:
+    paths: ["cloud-run/**", ".github/workflows/images.yml"]
+  push:
+    branches: [master]
+    paths: ["cloud-run/**"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloud-run
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx tsc
+      - run: bun run build

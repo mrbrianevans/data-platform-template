@@ -1,0 +1,13 @@
+{
+  "name": "cloud-run",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run build.ts",
+    "build:push": "bun run build.ts --push"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "latest"
+  }
+}

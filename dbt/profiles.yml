@@ -1,0 +1,23 @@
+data_platform:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: "{{ env_var('DBT_DATASET', 'dbt_dev') }}"
+      location: europe-west2
+      threads: 4
+
+    prod:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: analytics
+      location: europe-west2
+      threads: 8
+
+    ci:
+      type: duckdb
+      path: target/ci.duckdb
+      threads: 2

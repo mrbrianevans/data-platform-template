@@ -1,0 +1,16 @@
+.env
+*.tfstate
+*.tfstate.*
+.terraform/
+*.auto.tfvars
+secrets*.tfvars
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.venv/
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+node_modules/
+terraform/modules/**/.terraform.lock.hcl
+dbt/.user.yml

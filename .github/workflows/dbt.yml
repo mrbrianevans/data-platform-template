@@ -1,0 +1,34 @@
+name: dbt
+
+on:
+  pull_request:
+    paths: ["dbt/**", ".github/workflows/dbt.yml"]
+  push:
+    branches: [master]
+    paths: ["dbt/**"]
+
+jobs:
+  style-and-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dbt
+    env:
+      GCP_PROJECT_ID: ci-placeholder
+    steps:
+      - uses: actions/checkout@v7
+      - name: install dbt v2
+        run: |
+          curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: dbt --version
+      - name: format (Fivetran + dbt Labs layout)
+        run: dbt format --check --profiles-dir .
+      - name: lint
+        run: dbt lint --profiles-dir .
+      - name: project checks
+        run: dbt check --profiles-dir .
+      - name: parse
+        run: dbt parse --profiles-dir .
+      - name: build sample seeds on DuckDB
+        run: "dbt build --profiles-dir . --target ci --vars '{load_sample_data: true}'"
