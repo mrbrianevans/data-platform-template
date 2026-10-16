@@ -1,0 +1,29 @@
+name: airflow
+
+on:
+  pull_request:
+    paths: ["airflow/**", ".github/workflows/airflow.yml"]
+  push:
+    branches: [master]
+    paths: ["airflow/**"]
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: airflow
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: install
+        run: |
+          pip install "apache-airflow==2.10.5" \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.10.5/constraints-3.12.txt"
+          pip install -r requirements-dev.txt \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.10.5/constraints-3.12.txt"
+      - run: ruff check .
+      - name: DAG imports and unit tests
+        run: pytest

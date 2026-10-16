@@ -1,0 +1,29 @@
+name: dbt
+
+on:
+  pull_request:
+    paths: ["dbt/**", ".github/workflows/dbt.yml"]
+  push:
+    branches: [master]
+    paths: ["dbt/**"]
+
+jobs:
+  build-seeds:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dbt
+    env:
+      DBT_TARGET: ci
+      DBT_PROFILES_DIR: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: dbt/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: dbt deps || true
+      - run: dbt build --target ci
+      - run: sqlfluff lint models --dialect bigquery || true

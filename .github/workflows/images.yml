@@ -1,0 +1,36 @@
+name: images
+
+on:
+  pull_request:
+    paths: ["cloud-run/**", ".github/workflows/images.yml"]
+  push:
+    branches: [master]
+    paths: ["cloud-run/**"]
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      jobs: ${{ steps.find.outputs.jobs }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        run: |
+          jobs=$(find cloud-run/jobs -mindepth 2 -maxdepth 2 -name Dockerfile -printf '%h\n' | xargs -r -n1 basename | jq -R . | jq -sc .)
+          echo "jobs=${jobs:-[]}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: discover
+    if: needs.discover.outputs.jobs != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        job: ${{ fromJson(needs.discover.outputs.jobs) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: cloud-run/jobs/${{ matrix.job }}
+          push: false

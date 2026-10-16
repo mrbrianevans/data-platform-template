@@ -1,0 +1,5 @@
+apache-airflow-providers-google
+duckdb
+pyarrow
+astronomer-cosmos
+dbt-bigquery
