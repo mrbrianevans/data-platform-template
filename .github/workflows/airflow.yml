@@ -18,3 +18,4 @@ jobs:
       - uses: astral-sh/setup-uv@v10
       - run: uv sync --locked
       - run: uv run ruff check .
+      - run: uv format --check

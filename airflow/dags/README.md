@@ -12,5 +12,9 @@ Managed with [uv](https://docs.astral.sh/uv/) (`pyproject.toml` + `uv.lock`).
 cd airflow
 uv sync                 # install
 uv add <package>        # add a dependency
-uv run ruff check .     # lint
+uv run ruff check .     # lint, including Airflow's AIR ruleset
+uv format              # format (uv format --check to verify)
 ```
+
+Format Python with `uv format` before committing. It runs the Ruff formatter at line length 110, matching Airflow's own style.
+

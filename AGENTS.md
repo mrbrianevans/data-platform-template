@@ -23,6 +23,7 @@ Conventions and commands for coding agents working in this repo.
 - Cloud Run jobs only where parallelism is needed. Use Bun and TypeScript.
 - Terraform providers are pinned to the latest major in `versions.tf` and locked in `terraform/envs/*/.terraform.lock.hcl`.
 - No Airflow DAG tests and no local docker-compose for Airflow.
+- Format Python with `uv format` (Ruff formatter, line length 110 to match Airflow). Run `uv format --check` before committing. Ruff linting includes Airflow's `AIR` ruleset.
 
 ## Commands
 
@@ -43,6 +44,7 @@ dbt build --profiles-dir . -t ci --vars '{load_sample_data: true}'   # DuckDB, n
 uv sync
 uv add <package>
 uv run ruff check .
+uv format --check .         # formatting; run `uv format` to apply
 
 # Cloud Run jobs (from cloud-run/)
 bun install

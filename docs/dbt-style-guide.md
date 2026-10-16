@@ -75,7 +75,7 @@ Staging details:
 
 ## SQL style
 
-Formatting is enforced by `dbt format` and `dbt lint` using [`dbt/.sqlfluff`](../dbt/.sqlfluff).
+Formatting is enforced by `dbt format` and `dbt lint` using [`dbt/.sqlfluff`](../dbt/.sqlfluff). Both commands are built on SQLFluff: `dbt format` applies SQLFluff's layout rules (the `LT*` family) and `dbt lint` reports the rest of the rules, with the same `.sqlfluff` config. They do not use sqlfmt.
 
 - Everything lowercase: keywords, functions, identifiers, CTE names.
 - Four-space indent, trailing commas, lines of at most 80 characters.

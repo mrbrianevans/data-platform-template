@@ -19,3 +19,8 @@ package = false
 
 [tool.ruff]
 src = ["dags"]
+line-length = 110
+
+[tool.ruff.lint]
+# Airflow's own ruleset (task variable name must match task_id, etc.).
+extend-select = ["AIR"]
