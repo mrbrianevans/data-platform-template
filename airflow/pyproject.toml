@@ -14,6 +14,11 @@ dev = [
     "ruff>=0.17.1",
 ]
 
+[tool.uv.scripts]
+# uv's own `uv format` command is experimental and pulls a separate ruff, so
+# format through the project dependency instead.
+format = "ruff format"
+
 [tool.uv]
 package = false
 
