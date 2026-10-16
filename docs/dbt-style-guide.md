@@ -89,6 +89,7 @@ Formatting is enforced by `dbt format` and `dbt lint` using [`dbt/.sqlfluff`](..
 - Fields before aggregates and window functions. Aggregate as early as possible, before joining. `group by 1, 2`.
 - Prefer `union all` to `union`; prefer `where` to `having`; avoid `order by` in models.
 - Cross-database syntax: `coalesce` not `ifnull`/`nvl`, `case when` not `iff`/`if`, `is null` / `is not null` not `isnull()`. Cast timestamps explicitly in staging (`{{ dbt.type_timestamp() }}` / `cast(... as timestamp)`).
+- Models must build on both BigQuery (`dev`/`prod`) and DuckDB (`ci`). Use `dbt.type_*()` macros for types and the `json_string()` macro in `dbt/macros/` for extracting fields from raw JSON, rather than adapter-specific functions. Add a dispatching macro when you need another adapter-specific function.
 - Comments only where logic is important or complex; leave blank lines around the commented code. Use Jinja comments (`{# #}`) when the comment should not reach compiled SQL.
 - CTEs duplicated across models become intermediate models.
 - Jinja: spaces inside delimiters (`{{ ref('x') }}`), 4-space indent inside blocks, do not nest curlies.
@@ -140,13 +141,14 @@ renamed as (
 
     select
         ---------- ids
-        cast(id as string) as item_id,
+        cast(id as {{ dbt.type_string() }}) as item_id,
 
         ---------- strings
-        json_value(data, '$.name') as item_name,
+        {{ json_string('data', 'name') }} as item_name,
 
         ---------- numerics
-        cast(json_value(data, '$.amount') as numeric) as item_amount
+        cast({{ json_string('data', 'amount') }} as {{ dbt.type_numeric() }})
+            as item_amount
 
     from source
 
@@ -198,7 +200,7 @@ select * from orders_joined_to_customers
 
 ## Warehouse layout
 
-Each layer builds into its own BigQuery dataset: `staging`, `intermediate`, `marts` in the `prod` target, and `dbt_<name>_staging` etc. in other targets (see `dbt/macros/generate_schema_name.sql`). Raw data is in `raw`. Use `dev` locally and `prod` only from deployment.
+Each layer builds into its own BigQuery dataset: `staging`, `intermediate`, `marts` in the `prod` target (and the `ci` DuckDB target), and `dbt_<name>_staging` etc. in other targets (see `dbt/macros/generate_schema_name.sql`). Raw data is in `raw`. Use `dev` locally and `prod` only from deployment.
 
 ## Enforcement
 
@@ -210,6 +212,7 @@ Run these from `dbt/` before committing. CI runs the same commands.
 | `dbt lint` | SQL rules: aliasing, joins, subqueries, `union all`, `!=`, and so on |
 | `dbt check` | Project rules in `dbt/checks/`: descriptions, primary key tests, layer naming and folders, staging reads sources only, only staging reads sources, properties file naming |
 | `dbt parse` | The project compiles |
+| `dbt build -t ci --vars '{load_sample_data: true}'` | Models and tests run on DuckDB against the sample seeds (no warehouse needed) |
 
 Static analysis defaults to `baseline`. Develop with `DBT_ENV_STATIC_ANALYSIS=strict` (requires `dbt login`) and leave it unset in deployment, per [dbt's recommendation](https://docs.getdbt.com/best-practices/optimize-static-analysis-for-development-and-deployment).
 
@@ -221,4 +224,4 @@ If you need to deviate from a rule, change the check or `.sqlfluff` in the same 
 2. Imports at the top (`ref` / `source` in CTEs), `select * from <final_cte>` at the bottom.
 3. Columns named and ordered per the naming rules; primary key `<entity>_id`.
 4. Entry in the folder's `_<directory>__models.yml` with a description and `unique` + `not_null` on the primary key. New sources also get `_<source>__sources.yml` and a `docs/connectors/<source>.md` page.
-5. `dbt format`, `dbt lint`, `dbt check`, `dbt parse` all pass.
+5. `dbt format`, `dbt lint`, `dbt check`, `dbt parse` all pass, and `dbt build -t ci` passes (add sample seed rows in `seeds/sample_data/` for new sources).

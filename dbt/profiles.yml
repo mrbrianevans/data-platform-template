@@ -16,3 +16,8 @@ data_platform:
       dataset: analytics
       location: europe-west2
       threads: 8
+
+    ci:
+      type: duckdb
+      path: target/ci.duckdb
+      threads: 2

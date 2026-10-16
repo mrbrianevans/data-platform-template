@@ -41,3 +41,7 @@ seeds:
     sample_data:
       +enabled: "{{ var('load_sample_data', false) }}"
       +schema: raw
+
+dispatch:
+  - macro_namespace: data_platform
+    search_order: ["data_platform"]

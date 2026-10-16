@@ -30,3 +30,5 @@ jobs:
         run: dbt check --profiles-dir .
       - name: parse
         run: dbt parse --profiles-dir .
+      - name: build sample seeds on DuckDB
+        run: dbt build --profiles-dir . --target ci --vars '{load_sample_data: true}'

@@ -14,7 +14,7 @@ The installer places the binary at `~/.local/bin/dbt` (and an alias `dbtf`). See
 
 ## Use
 
-`profiles.yml` lives in this directory and targets BigQuery in `europe-west2` using your own gcloud credentials.
+`profiles.yml` lives in this directory. `dev` and `prod` target BigQuery in `europe-west2` using your own gcloud credentials. `ci` targets a local DuckDB file (dbt v2 ships a built-in DuckDB adapter, no extra install), so models and tests can run without a warehouse.
 
 ```bash
 gcloud auth application-default login
@@ -23,6 +23,9 @@ export GCP_PROJECT_ID=<project-id>
 cd dbt
 dbt parse --profiles-dir .          # offline, no warehouse needed
 dbt build --profiles-dir .          # seeds, models, tests against BigQuery
+
+# no warehouse: build on DuckDB with the sample seeds
+dbt build --profiles-dir . -t ci --vars '{load_sample_data: true}'
 ```
 
 ## Layout
@@ -46,8 +49,9 @@ dbt format --profiles-dir .      # apply layout (add --check in CI)
 dbt lint --profiles-dir .        # SQL rules
 dbt check --profiles-dir .       # project structure/naming/testing rules
 dbt parse --profiles-dir .
+dbt build --profiles-dir . -t ci --vars '{load_sample_data: true}'
 ```
 
 ## Notes
 
-dbt v2 does not support DuckDB, so CI runs format, lint, check and parse (all offline) rather than building seeds.
+Models must work on both BigQuery and DuckDB; use `dbt.type_*()` and the `json_string()` macro rather than adapter-specific SQL. See the style guide.

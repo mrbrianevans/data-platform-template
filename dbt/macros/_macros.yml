@@ -4,8 +4,9 @@ macros:
   - name: generate_schema_name
     description: >
       Builds each layer into its own dataset (staging, intermediate, marts)
-      in the prod target, and into prefixed datasets (dbt_dev_staging, ...)
-      in every other target so developers do not overwrite each other.
+      in the prod and ci targets, and into prefixed datasets
+      (dbt_dev_staging, ...) in every other target so developers do not
+      overwrite each other.
     arguments:
       - name: custom_schema_name
         type: string
@@ -13,3 +14,15 @@ macros:
       - name: node
         type: any
         description: The node being built.
+
+  - name: json_string
+    description: >
+      Extracts a top-level field from a raw JSON `data` column as a string.
+      Dispatches per adapter (BigQuery in dev/prod, DuckDB in ci).
+    arguments:
+      - name: column
+        type: string
+        description: Name of the JSON column, usually `data`.
+      - name: field
+        type: string
+        description: Name of the top-level JSON field to extract.
