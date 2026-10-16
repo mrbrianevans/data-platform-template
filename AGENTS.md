@@ -54,3 +54,11 @@ bun run build                # all jobs; bun run build.ts <name> for one
 ## CI
 
 `.github/workflows/`: terraform fmt/validate, dbt format --check / lint / check / parse / build on DuckDB seeds, Airflow ruff lint, Cloud Run typecheck and image builds. Keep these green.
+
+## Cursor Cloud specific instructions
+
+- `dbt` (Fusion), `terraform`, `uv`, `bun`, and `bunx` are on `/usr/local/bin`. Non-interactive shells do not load `~/.bashrc`.
+- From `dbt/`, verify without GCP: `GCP_PROJECT_ID=ci-placeholder dbt build --profiles-dir . -t ci --vars '{load_sample_data: true}'`. Sample rows land in `dbt/target/ci.duckdb` as `raw.raw_example__items`. BigQuery `dev` and `prod` need `GCP_PROJECT_ID` and application-default credentials, which are not configured here.
+- Docker starts on boot for `bun run build` (fuse-overlayfs; this VM has no systemd). There is no Airflow webserver. From `airflow/`, run `uv run ruff check .` and `uv run ruff format --check`. Import DAG packages with `PYTHONPATH=dags`.
+- `cloud-run/jobs` can be empty. `bunx tsc` typechecks `build.ts`. `bun run build` exits 0 when no `jobs/<name>/index.ts` exists.
+- Terraform providers for `terraform/modules/*` and `terraform/envs/*` are already initialized. Login shells set `TF_PLUGIN_CACHE_DIR=/opt/terraform-plugin-cache`.
