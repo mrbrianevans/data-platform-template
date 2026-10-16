@@ -13,8 +13,8 @@ cd airflow
 uv sync                 # install
 uv add <package>        # add a dependency
 uv run ruff check .     # lint, including Airflow's AIR ruleset
-./format.sh              # format (./format.sh --check to verify)
+uv run ruff format      # format (uv run ruff format --check to verify)
 ```
 
-Format Python with `./format.sh` before committing. It runs the Ruff formatter at line length 110, matching Airflow's own style.
+Format Python with `uv run ruff format` before committing. It uses the ruff version pinned in `uv.lock`, at line length 110 to match Airflow's own style.
 
