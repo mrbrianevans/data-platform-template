@@ -23,7 +23,7 @@ Conventions and commands for coding agents working in this repo.
 - Cloud Run jobs only where parallelism is needed. Use Bun and TypeScript.
 - Terraform providers are pinned to the latest major in `versions.tf` and locked in `terraform/envs/*/.terraform.lock.hcl`.
 - No Airflow DAG tests and no local docker-compose for Airflow.
-- Format Python with `uv run format` (Ruff formatter, line length 110 to match Airflow). Run `uv run format --check` before committing. Ruff linting includes Airflow's `AIR` ruleset.
+- Format Python with `uv run format` from the `airflow/` directory (Ruff formatter, line length 110 to match Airflow). Run `uv run format --check` before committing. Ruff linting includes Airflow's `AIR` ruleset.
 
 ## Commands
 
