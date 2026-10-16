@@ -1,6 +1,6 @@
 # data-platform-template
 
-An open-source template for a client data platform on GCP (London, `europe-west2`). Each client build copies this layout into its own private repo and deploys to its own GCP project.
+An open-source template for a data platform on GCP (London, `europe-west2`): Terraform, Airflow, dbt and Cloud Run.
 
 ## Architecture
 
@@ -29,29 +29,32 @@ flowchart LR
 | Path | Purpose |
 | --- | --- |
 | `terraform/modules/` | Reusable modules: project, bigquery, gcs, secrets, airflow, datastream, cloud-run-job, iam |
-| `terraform/envs/` | One env per firm (`example/` is the template) |
-| `airflow/` | DAGs (one per source + `dbt_build`), shared `ingest_data` task group, tests, local `docker-compose.yml` |
-| `dbt/` | SQL-only dbt project: staging, intermediate, marts, CI seeds |
-| `cloud-run/jobs/<name>/` | Bun + TypeScript jobs, only where parallelism is needed |
+| `terraform/envs/` | One env per deployment (`example/` is the template) |
+| `airflow/` | DAGs (one per source + `dbt_build`), shared `ingest_data` package in `dags/`, managed with uv |
+| `dbt/` | SQL-only dbt v2 (Fusion) project: staging, intermediate, marts, seeds |
+| `cloud-run/jobs/<name>/index.ts` | Bun + TypeScript jobs, only where parallelism is needed; `cloud-run/build.ts` builds the images |
 | `.github/workflows/` | CI |
-| `docs/` | Architecture, onboarding a firm, connectors, security |
+| `docs/` | Architecture, connectors, security |
 
 ## Quickstart
 
 ```bash
 # Infrastructure
 cd terraform/envs/example
-cp example.tfvars <firm>.tfvars   # set project_id, enabled_sources
-terraform init && terraform plan -var-file=<firm>.tfvars
+cp example.tfvars <name>.tfvars   # set project_id, enabled_sources
+terraform init && terraform plan -var-file=<name>.tfvars
 
-# dbt (CI target uses DuckDB and the seeds)
+# dbt v2 (see dbt/README.md for install)
 cd dbt
-pip install -r requirements.txt
-DBT_TARGET=ci DBT_PROFILES_DIR=. dbt build
+dbt parse --profiles-dir .
 
-# Airflow locally
+# Airflow dependencies
 cd airflow
-docker compose up airflow-init && docker compose up
+uv sync
+
+# Cloud Run job images
+cd cloud-run
+bun install && bun run build
 ```
 
 ## Conventions

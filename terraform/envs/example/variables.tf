@@ -1,5 +1,5 @@
 variable "project_id" {
-  description = "GCP project ID for this firm."
+  description = "GCP project ID for this deployment."
   type        = string
 }
 
@@ -10,7 +10,7 @@ variable "region" {
 }
 
 variable "enabled_sources" {
-  description = "Connector units to enable for this firm (one DAG or Cloud Run job per source)."
+  description = "Connector units to enable for this deployment (one DAG or Cloud Run job per source)."
   type        = list(string)
   default     = []
 }

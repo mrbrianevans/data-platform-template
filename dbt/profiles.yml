@@ -1,5 +1,5 @@
 data_platform:
-  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  target: dev
   outputs:
     dev:
       type: bigquery
@@ -8,8 +8,3 @@ data_platform:
       dataset: "{{ env_var('DBT_DATASET', 'dbt_dev') }}"
       location: europe-west2
       threads: 4
-
-    ci:
-      type: duckdb
-      path: target/ci.duckdb
-      threads: 2

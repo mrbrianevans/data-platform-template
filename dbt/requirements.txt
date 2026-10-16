@@ -1,4 +1,0 @@
-dbt-core~=1.9
-dbt-bigquery~=1.9
-dbt-duckdb~=1.9
-sqlfluff

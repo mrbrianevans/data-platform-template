@@ -4,13 +4,13 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = ">= 6.0"
+      version = "~> 8.7"
     }
   }
 
-  # Configure a remote backend per firm, e.g.:
+  # Configure a remote backend per env, e.g.:
   # backend "gcs" {
-  #   bucket = "<firm>-tfstate"
+  #   bucket = "<name>-tfstate"
   #   prefix = "data-platform"
   # }
 }

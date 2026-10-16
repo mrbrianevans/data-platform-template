@@ -1,4 +1,4 @@
-project_id = "example-firm-data"
+project_id = "example-data-platform"
 region     = "europe-west2"
 
 enabled_sources = [

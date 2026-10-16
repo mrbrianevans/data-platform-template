@@ -1,6 +1,6 @@
 # Architecture
 
-Each firm gets its own GCP project (`europe-west2`) provisioned from `terraform/envs/<firm>`.
+The platform deploys to a single GCP project (`europe-west2`) provisioned from `terraform/envs/<name>`.
 
 ## Data flow
 

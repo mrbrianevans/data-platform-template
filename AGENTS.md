@@ -4,10 +4,10 @@ Conventions and commands for coding agents working in this repo.
 
 ## Layout
 
-- `terraform/modules/*` reusable modules; `terraform/envs/<firm>` one env per firm.
-- `airflow/dags` one DAG per source plus `dbt_build`; `airflow/include/ingest_data` shared task group; `airflow/tests`.
-- `dbt/models/{staging,intermediate,marts}`; `dbt/seeds` sample data for CI.
-- `cloud-run/jobs/<name>` Bun + TypeScript jobs with a Dockerfile.
+- `terraform/modules/*` reusable modules; `terraform/envs/<name>` one env per deployment.
+- `airflow/dags` one DAG per source plus `dbt_build`; `airflow/dags/ingest_data` shared package (Airflow puts `dags/` on `sys.path`); dependencies via uv (`airflow/pyproject.toml`).
+- `dbt/models/{staging,intermediate,marts}`; `dbt/seeds` sample data. dbt is v2 (Fusion), see `dbt/README.md`.
+- `cloud-run/jobs/<name>/index.ts` Bun + TypeScript jobs; `cloud-run/build.ts` (Bun shell `$`) scans them and builds each as a Docker image using its own embedded Dockerfile. Do not add per-job Dockerfiles.
 - `docs/` Markdown documentation.
 
 ## Rules
@@ -18,8 +18,10 @@ Conventions and commands for coding agents working in this repo.
 - dbt is SQL only. No Python models.
 - SQL Server sources use Datastream (Terraform), never Airflow DAGs.
 - Secrets live only in Secret Manager. Reference them by name in tfvars; never commit values, keys or `.env` files.
-- Region is `europe-west2` (London) unless a firm env overrides it.
+- Region is `europe-west2` (London) unless an env overrides it.
 - Cloud Run jobs only where parallelism is needed. Use Bun and TypeScript.
+- Terraform providers are pinned to the latest major in `versions.tf` and locked in `terraform/envs/*/.terraform.lock.hcl`.
+- No Airflow DAG tests and no local docker-compose for Airflow.
 
 ## Commands
 
@@ -28,21 +30,20 @@ Conventions and commands for coding agents working in this repo.
 terraform fmt -recursive terraform
 terraform -chdir=terraform/envs/example init -backend=false && terraform -chdir=terraform/envs/example validate
 
-# dbt (from dbt/)
-DBT_TARGET=ci DBT_PROFILES_DIR=. dbt build
+# dbt v2 (from dbt/)
+dbt parse --profiles-dir .
+dbt build --profiles-dir .   # needs BigQuery credentials and GCP_PROJECT_ID
 
-# Airflow (from airflow/)
-pip install -r requirements-dev.txt
-ruff check .
-pytest
+# Airflow (from airflow/, uv-managed)
+uv sync
+uv add <package>
+uv run ruff check .
 
-# Local Airflow
-docker compose -f airflow/docker-compose.yml up
-
-# Cloud Run job (from cloud-run/jobs/<name>/)
-bun install && bun run build
+# Cloud Run jobs (from cloud-run/)
+bun install
+bun run build                # all jobs; bun run build.ts <name> for one
 ```
 
 ## CI
 
-`.github/workflows/`: terraform fmt/validate, dbt build on seeds, Airflow lint + DAG import tests, Cloud Run image builds. Keep these green.
+`.github/workflows/`: terraform fmt/validate, dbt parse, Airflow ruff lint, Cloud Run typecheck and image builds. Keep these green.
