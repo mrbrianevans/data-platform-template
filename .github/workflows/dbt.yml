@@ -16,7 +16,7 @@ jobs:
     env:
       GCP_PROJECT_ID: ci-placeholder
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: install dbt v2
         run: |
           curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update

@@ -1385,7 +1385,7 @@ wheels = [
 
 [[package]]
 name = "gcloud-aio-auth"
-version = "5.5.1"
+version = "5.5.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1394,9 +1394,9 @@ dependencies = [
     { name = "pyjwt" },
     { name = "tenacity" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/66/c9/cf630a761d4bbe4de88c52362b55dc29ca24735b1d893a6d6c5990879c47/gcloud_aio_auth-5.5.1.tar.gz", hash = "sha256:8039b9423445e6ad702649e2b73c1352dd380c884cf6401963c5065f583ed30c", size = 15765, upload-time = "2026-10-02T12:44:07.558Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8d/90/b8669737fd58d957017a034524afc86afcbb5ea11648f60deab685952f75/gcloud_aio_auth-5.5.2.tar.gz", hash = "sha256:c3cd0781fbeeec3077b075ec5df3291652aacd788158fc62bb3b9b24b1b13a7f", size = 16169, upload-time = "2026-10-16T16:18:47.26Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/a3/2766b5e0691743d1865aafe2323c8fd343df080597f287e52292c795c2e3/gcloud_aio_auth-5.5.1-py3-none-any.whl", hash = "sha256:3f3ca5a79c176586c142a017346b88535a5ac6ec492329f9e17334216d829894", size = 18359, upload-time = "2026-10-02T12:44:08.325Z" },
+    { url = "https://files.pythonhosted.org/packages/09/81/f3eec9bb5fc92a07013942a6b261003bc8336e8c04e1d30b50df2c629b06/gcloud_aio_auth-5.5.2-py3-none-any.whl", hash = "sha256:e21b7d23e270406a67dbc403c258becf206905932bff232f4db25b158b45569f", size = 18797, upload-time = "2026-10-16T16:18:48.139Z" },
 ]
 
 [[package]]
