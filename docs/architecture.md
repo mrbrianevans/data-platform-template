@@ -11,4 +11,6 @@ The platform deploys to a single GCP project (`europe-west2`) provisioned from `
 
 ## Components
 
+Modelling rules for dbt are in [dbt-style-guide.md](dbt-style-guide.md).
+
 See `terraform/modules/` for infrastructure building blocks and `airflow/`, `dbt/`, `cloud-run/` for runtime code.

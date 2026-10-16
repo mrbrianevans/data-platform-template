@@ -34,7 +34,7 @@ flowchart LR
 | `dbt/` | SQL-only dbt v2 (Fusion) project: staging, intermediate, marts, seeds |
 | `cloud-run/jobs/<name>/index.ts` | Bun + TypeScript jobs, only where parallelism is needed; `cloud-run/build.ts` builds the images |
 | `.github/workflows/` | CI |
-| `docs/` | Architecture, connectors, security |
+| `docs/` | Architecture, connectors, security, [dbt style guide](docs/dbt-style-guide.md) |
 
 ## Quickstart
 
@@ -46,7 +46,7 @@ terraform init && terraform plan -var-file=<name>.tfvars
 
 # dbt v2 (see dbt/README.md for install)
 cd dbt
-dbt parse --profiles-dir .
+dbt format --check --profiles-dir . && dbt lint --profiles-dir . && dbt check --profiles-dir .
 
 # Airflow dependencies
 cd airflow
@@ -62,6 +62,7 @@ bun install && bun run build
 - One source = one connector unit: a DAG (or Cloud Run job), a dbt staging folder, sources YAML and a docs page.
 - Every source lands as `(id, data JSON)` via `ingest_data`; typing happens in staging.
 - SQL Server sources use Datastream (Terraform), not DAGs.
+- dbt models follow the [Fivetran SQL guidelines](https://github.com/fivetran/dbt_style_guide/blob/main/sql_guidelines.md) and [dbt best practices](https://docs.getdbt.com/best-practices?version=2); see [docs/dbt-style-guide.md](docs/dbt-style-guide.md).
 - Secrets live only in Secret Manager and are referenced by name; never committed.
 
 See [`docs/`](docs/) and [`AGENTS.md`](AGENTS.md) for more.

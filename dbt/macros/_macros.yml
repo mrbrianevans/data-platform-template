@@ -1,0 +1,15 @@
+version: 2
+
+macros:
+  - name: generate_schema_name
+    description: >
+      Builds each layer into its own dataset (staging, intermediate, marts)
+      in the prod target, and into prefixed datasets (dbt_dev_staging, ...)
+      in every other target so developers do not overwrite each other.
+    arguments:
+      - name: custom_schema_name
+        type: string
+        description: The schema configured with +schema, or none.
+      - name: node
+        type: any
+        description: The node being built.

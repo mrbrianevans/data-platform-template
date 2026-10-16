@@ -8,7 +8,7 @@ on:
     paths: ["dbt/**"]
 
 jobs:
-  parse:
+  style-and-checks:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -22,4 +22,11 @@ jobs:
           curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: dbt --version
-      - run: dbt parse --profiles-dir .
+      - name: format (Fivetran + dbt Labs layout)
+        run: dbt format --check --profiles-dir .
+      - name: lint
+        run: dbt lint --profiles-dir .
+      - name: project checks
+        run: dbt check --profiles-dir .
+      - name: parse
+        run: dbt parse --profiles-dir .

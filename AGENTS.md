@@ -6,7 +6,7 @@ Conventions and commands for coding agents working in this repo.
 
 - `terraform/modules/*` reusable modules; `terraform/envs/<name>` one env per deployment.
 - `airflow/dags` one DAG per source plus `dbt_build`; `airflow/dags/ingest_data` shared package (Airflow puts `dags/` on `sys.path`); dependencies via uv (`airflow/pyproject.toml`).
-- `dbt/models/{staging,intermediate,marts}`; `dbt/seeds` sample data. dbt is v2 (Fusion), see `dbt/README.md`.
+- `dbt/models/{staging,intermediate,marts}`; `dbt/seeds` lookup tables (sample raw data in `seeds/sample_data/` is opt-in). dbt is v2 (Fusion), see `dbt/README.md`.
 - `cloud-run/jobs/<name>/index.ts` Bun + TypeScript jobs; `cloud-run/build.ts` (Bun shell `$`) scans them and builds each as a Docker image using its own embedded Dockerfile. Do not add per-job Dockerfiles.
 - `docs/` Markdown documentation.
 
@@ -16,6 +16,7 @@ Conventions and commands for coding agents working in this repo.
 - Every source lands in a raw table as `(id, data JSON)` via `ingest_data`. Never add typed columns at ingestion; type in staging.
 - Staging models are named `stg_<source>__<entity>`; intermediate `int_*`; marts `fct_*` / `dim_*`.
 - dbt is SQL only. No Python models.
+- **When adding or changing dbt models, sources, tests, seeds or macros you MUST follow both the [Fivetran dbt SQL guidelines](https://github.com/fivetran/dbt_style_guide/blob/main/sql_guidelines.md) and the [dbt Labs best practices (v2)](https://docs.getdbt.com/best-practices?version=2).** Our summary, resolution of conflicts between them, and a new-model checklist are in `docs/dbt-style-guide.md`; read it first. Key points: lowercase SQL, 4-space indent, trailing commas, 80-char lines, CTEs not subqueries, `ref`/`source` in import CTEs at the top, explicit `as` aliases and join types, `join ... on`, `stg_<source>__<entities>` / `int_<entity>_<verb>` / `fct_*` / `dim_*` naming, every model described with a tested (`unique`, `not_null`) `<entity>_id` primary key, staging is the only layer using `source()` and does no joins.
 - SQL Server sources use Datastream (Terraform), never Airflow DAGs.
 - Secrets live only in Secret Manager. Reference them by name in tfvars; never commit values, keys or `.env` files.
 - Region is `europe-west2` (London) unless an env overrides it.
@@ -31,6 +32,9 @@ terraform fmt -recursive terraform
 terraform -chdir=terraform/envs/example init -backend=false && terraform -chdir=terraform/envs/example validate
 
 # dbt v2 (from dbt/)
+dbt format --profiles-dir .   # fix layout; use --check to verify
+dbt lint --profiles-dir .
+dbt check --profiles-dir .    # project rules in dbt/checks/
 dbt parse --profiles-dir .
 dbt build --profiles-dir .   # needs BigQuery credentials and GCP_PROJECT_ID
 
@@ -46,4 +50,4 @@ bun run build                # all jobs; bun run build.ts <name> for one
 
 ## CI
 
-`.github/workflows/`: terraform fmt/validate, dbt parse, Airflow ruff lint, Cloud Run typecheck and image builds. Keep these green.
+`.github/workflows/`: terraform fmt/validate, dbt format --check / lint / check / parse, Airflow ruff lint, Cloud Run typecheck and image builds. Keep these green.

@@ -27,13 +27,27 @@ dbt build --profiles-dir .          # seeds, models, tests against BigQuery
 
 ## Layout
 
-- `models/staging/<source>/`: `stg_<source>__<entity>`; types the `(id, data JSON)` raw tables.
-- `models/intermediate/`: `int_*`.
-- `models/marts/`: `fct_*` / `dim_*`.
-- `seeds/`: sample data.
+- `models/staging/<source>/`: `stg_<source>__<entities>`; types the `(id, data JSON)` raw tables. Views.
+- `models/intermediate/`: `int_<entity>_<verb>`. Views.
+- `models/marts/`: `fct_*` / `dim_*`. Tables.
+- `checks/`: dbt v2 project checks that enforce the conventions.
+- `macros/`: macros, documented in `_macros.yml`.
+- `seeds/`: lookup tables. `seeds/sample_data/` is raw-shaped sample data, off unless `--vars '{load_sample_data: true}'`.
+- `.sqlfluff`: SQL style config used by `dbt format` and `dbt lint`.
 
 No Python models.
 
+## Style and conventions
+
+All models follow the [Fivetran dbt SQL guidelines](https://github.com/fivetran/dbt_style_guide/blob/main/sql_guidelines.md) and [dbt Labs best practices](https://docs.getdbt.com/best-practices?version=2). See [`docs/dbt-style-guide.md`](../docs/dbt-style-guide.md) for the rules, examples and a new-model checklist.
+
+```bash
+dbt format --profiles-dir .      # apply layout (add --check in CI)
+dbt lint --profiles-dir .        # SQL rules
+dbt check --profiles-dir .       # project structure/naming/testing rules
+dbt parse --profiles-dir .
+```
+
 ## Notes
 
-dbt v2 does not support DuckDB, so CI runs `dbt parse` (offline) rather than building seeds locally.
+dbt v2 does not support DuckDB, so CI runs format, lint, check and parse (all offline) rather than building seeds.

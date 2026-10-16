@@ -1,0 +1,34 @@
+version: 2
+
+checks:
+  - name: models_have_descriptions
+    description: Every model must have a description.
+
+  - name: models_have_primary_key_tests
+    description: >
+      Every model must have a primary key tested as unique and not_null.
+
+  - name: staging_models_follow_naming
+    description: >
+      Staging models are named stg_<source>__<entity> and live in
+      models/staging/<source>/.
+
+  - name: intermediate_models_follow_naming
+    description: Intermediate models are prefixed int_ and live in models/intermediate/.
+
+  - name: marts_models_follow_naming
+    description: Mart models are prefixed fct_ or dim_ and live in models/marts/.
+
+  - name: staging_models_only_read_sources
+    description: >
+      Staging models select from sources only (no joins to other models).
+      Base models under models/staging/<source>/base/ are the exception.
+
+  - name: sources_only_read_by_staging
+    description: Only staging models may reference sources.
+
+  - name: property_files_follow_naming
+    description: >
+      Model properties are configured per directory in _<directory>__models.yml.
+    config:
+      severity: warn
