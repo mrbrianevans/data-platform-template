@@ -2,10 +2,18 @@ name: terraform
 
 on:
   pull_request:
-    paths: ["terraform/**", ".github/workflows/terraform.yml"]
+    paths:
+      - terraform/**
+      - scripts/no-managed-airflow.sh
+      - .github/workflows/terraform.yml
+      - .github/workflows/deploy.yml
   push:
     branches: [master]
-    paths: ["terraform/**"]
+    paths:
+      - terraform/**
+      - scripts/no-managed-airflow.sh
+      - .github/workflows/terraform.yml
+      - .github/workflows/deploy.yml
 
 jobs:
   fmt-validate:
@@ -13,6 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: hashicorp/setup-terraform@v4
+      - name: refuse managed airflow
+        run: ./scripts/no-managed-airflow.sh
       - run: terraform fmt -check -recursive terraform
       - name: validate
         run: |
