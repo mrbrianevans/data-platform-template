@@ -26,3 +26,6 @@ provider "google" {
 #   project_id = var.project_id
 #   location   = var.region
 # }
+#
+# The demo project is terraform/envs/demo, applied by .github/workflows/deploy.yml.
+# Do not wire terraform/modules/airflow. Managed Airflow incurs significant cost.
