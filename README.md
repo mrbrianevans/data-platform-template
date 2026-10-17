@@ -33,8 +33,8 @@ flowchart LR
 | `airflow/` | DAGs (one per source + `dbt_build`), shared `ingest_data` package in `dags/`, managed with uv |
 | `dbt/` | SQL-only dbt v2 (Fusion) project: staging, intermediate, marts, seeds |
 | `cloud-run/jobs/<name>/index.ts` | Bun + TypeScript jobs, only where parallelism is needed; `cloud-run/build.ts` builds the images |
-| `.github/workflows/` | CI |
-| `docs/` | Architecture, [ingest_data](docs/ingest-data.md), connectors, security, [dbt style guide](docs/dbt-style-guide.md) |
+| `.github/workflows/` | CI, plus continuous deployment via Workload Identity Federation |
+| `docs/` | Architecture, [ingest_data](docs/ingest-data.md), connectors, security, [deployment](docs/deployment.md), [dbt style guide](docs/dbt-style-guide.md) |
 
 ## Quickstart
 
@@ -64,5 +64,10 @@ bun install && bun run build
 - SQL Server sources use Datastream (Terraform), not DAGs.
 - dbt models follow the [Fivetran SQL guidelines](https://github.com/fivetran/dbt_style_guide/blob/main/sql_guidelines.md) and [dbt best practices](https://docs.getdbt.com/best-practices?version=2); see [docs/dbt-style-guide.md](docs/dbt-style-guide.md).
 - Secrets live only in Secret Manager and are referenced by name; never committed.
+- Never deploy managed Airflow (Cloud Composer or any other hosted Airflow service). It incurs significant cost. BigQuery datasets and tables are fine. See [docs/deployment.md](docs/deployment.md).
+
+## Deployment
+
+Pushes to `master` deploy `terraform/envs/demo` and dbt to `data-platform-demo-511920`. GitHub Actions impersonates `gh-deploy@data-platform-demo-511920.iam.gserviceaccount.com` with Workload Identity Federation (`google-github-actions/auth@v3`). No service account keys. See [docs/deployment.md](docs/deployment.md).
 
 See [`docs/`](docs/) and [`AGENTS.md`](AGENTS.md) for more.

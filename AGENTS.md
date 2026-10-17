@@ -21,6 +21,7 @@ Conventions and commands for coding agents working in this repo.
 - Secrets live only in Secret Manager. Reference them by name in tfvars; never commit values, keys or `.env` files.
 - Region is `europe-west2` (London) unless an env overrides it.
 - Cloud Run jobs only where parallelism is needed. Use Bun and TypeScript.
+- Never deploy managed Airflow (Cloud Composer or any other hosted Airflow service). It incurs significant cost. Do not add `google_composer_*` resources, do not apply `terraform/modules/airflow`, and keep that module's `enabled` variable `false`. `scripts/no-managed-airflow.sh` enforces this. BigQuery datasets and tables may be created. Airflow may be run locally with its SQLite metadata database; that is not part of deployment. See `docs/deployment.md`.
 - Terraform providers are pinned to the latest major in `versions.tf` and locked in `terraform/envs/*/.terraform.lock.hcl`.
 - No local docker-compose for Airflow, and no test that starts a scheduler. `airflow/tests` covers `ingest_data` offline: mocked GCP clients, DuckDB on sample files, and a DagBag import.
 - Format Python with `uv run ruff format` from the `airflow/` directory (line length 110 to match Airflow). Run `uv run ruff format --check` before committing. Ruff linting includes Airflow's `AIR` ruleset.
@@ -54,12 +55,14 @@ bun run build                # all jobs; bun run build.ts <name> for one
 
 ## CI
 
-`.github/workflows/`: terraform fmt/validate, dbt format --check / lint / check / parse / build on DuckDB seeds, Airflow ruff lint and unit tests, Cloud Run typecheck and image builds. Keep these green.
+`.github/workflows/`: terraform fmt/validate (and `scripts/no-managed-airflow.sh`), dbt format --check / lint / check / parse / build on DuckDB seeds, Airflow ruff lint and unit tests, Cloud Run typecheck and image builds. Keep these green.
+
+`deploy.yml` runs on push to `master` (and `workflow_dispatch`). It authenticates to `data-platform-demo-511920` with Workload Identity Federation and applies `terraform/envs/demo` (BigQuery datasets) then `dbt build --target prod`. It must not deploy managed Airflow. Pull requests do not deploy.
 
 ## Cursor Cloud specific instructions
 
 - `dbt` (Fusion), `terraform`, `uv`, `bun`, and `bunx` are on `/usr/local/bin`. Non-interactive shells do not load `~/.bashrc`.
-- From `dbt/`, verify without GCP: `GCP_PROJECT_ID=ci-placeholder dbt build --profiles-dir . -t ci --vars '{load_sample_data: true}'`. Sample rows land in `dbt/target/ci.duckdb` as `raw.raw_example__items`. BigQuery `dev` and `prod` need `GCP_PROJECT_ID` and application-default credentials, which are not configured here.
+- From `dbt/`, verify without GCP: `GCP_PROJECT_ID=ci-placeholder dbt build --profiles-dir . -t ci --vars '{load_sample_data: true}'`. Sample rows land in `dbt/target/ci.duckdb` as `raw.raw_example__items`. BigQuery `dev` and `prod` need `GCP_PROJECT_ID` and application-default credentials, which are not configured here. Do not run `terraform apply` or `dbt build --target prod` from this VM. Continuous deployment is `.github/workflows/deploy.yml`.
 - Docker starts on boot for `bun run build` (fuse-overlayfs; this VM has no systemd). There is no Airflow webserver. From `airflow/`, run `uv run ruff check .`, `uv run ruff format --check`, and `uv run python -m unittest discover -s tests -v`. Import DAG packages with `PYTHONPATH=dags`.
 - `cloud-run/jobs` can be empty. `bunx tsc` typechecks `build.ts`. `bun run build` exits 0 when no `jobs/<name>/index.ts` exists.
 - Terraform providers for `terraform/modules/*` and `terraform/envs/*` are already initialized. Login shells set `TF_PLUGIN_CACHE_DIR=/opt/terraform-plugin-cache`.

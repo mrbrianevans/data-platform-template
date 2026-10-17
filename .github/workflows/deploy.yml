@@ -1,0 +1,105 @@
+name: deploy
+
+# Continuous deployment to the demo GCP project.
+# Authenticates with Workload Identity Federation (google-github-actions/auth)
+# and applies BigQuery plus dbt. Never add Cloud Composer or any other
+# managed Airflow service here: it incurs significant cost.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - terraform/**
+      - dbt/**
+      - scripts/no-managed-airflow.sh
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-demo
+  cancel-in-progress: false
+
+env:
+  GCP_PROJECT_ID: data-platform-demo-511920
+  GCP_REGION: europe-west2
+  GCP_SERVICE_ACCOUNT: gh-deploy@data-platform-demo-511920.iam.gserviceaccount.com
+  # Pool github, provider github. Project number 644325351184.
+  # Repository principalSet:
+  # principalSet://iam.googleapis.com/projects/644325351184/locations/global/workloadIdentityPools/github/attribute.repository/mrbrianevans/data-platform-template
+  GCP_WORKLOAD_IDENTITY_PROVIDER: projects/644325351184/locations/global/workloadIdentityPools/github/providers/github
+  TF_STATE_BUCKET: data-platform-demo-511920-tfstate
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform/envs/demo
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: refuse managed airflow
+        working-directory: .
+        run: ./scripts/no-managed-airflow.sh
+
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - uses: hashicorp/setup-terraform@v4
+
+      - name: ensure terraform state bucket
+        working-directory: .
+        run: |
+          set -euo pipefail
+          bucket="gs://${TF_STATE_BUCKET}"
+          if ! gcloud storage buckets describe "$bucket" --project="${GCP_PROJECT_ID}" >/dev/null 2>&1; then
+            gcloud storage buckets create "$bucket" \
+              --project="${GCP_PROJECT_ID}" \
+              --location="${GCP_REGION}" \
+              --uniform-bucket-level-access
+          fi
+          gcloud storage buckets update "$bucket" --versioning
+          gcloud storage buckets update "$bucket" --public-access-prevention
+
+      - name: terraform apply
+        run: |
+          set -euo pipefail
+          terraform init -input=false
+          terraform plan -input=false -lock-timeout=5m -var-file=demo.tfvars -out=tfplan
+          terraform apply -input=false -lock-timeout=5m tfplan
+
+  dbt:
+    needs: terraform
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dbt
+    env:
+      GCP_PROJECT_ID: data-platform-demo-511920
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - name: install dbt v2
+        run: |
+          curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: build on BigQuery
+        run: dbt build --profiles-dir . --target prod
