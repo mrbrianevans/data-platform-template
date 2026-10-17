@@ -12,7 +12,7 @@ flowchart LR
     SQL[SQL Server]
   end
 
-  API -->|Airflow DAG| GCS[(GCS NDJSON)]
+  API -->|Airflow DAG| GCS[(GCS files)]
   M365 -->|Cloud Run job| GCS
   GCS -->|ingest_data: DuckDB → Parquet → BQ temp → MERGE| RAW[(BigQuery raw<br/>id, data JSON)]
   SQL -->|Datastream| RAW
@@ -34,7 +34,7 @@ flowchart LR
 | `dbt/` | SQL-only dbt v2 (Fusion) project: staging, intermediate, marts, seeds |
 | `cloud-run/jobs/<name>/index.ts` | Bun + TypeScript jobs, only where parallelism is needed; `cloud-run/build.ts` builds the images |
 | `.github/workflows/` | CI, plus continuous deployment via Workload Identity Federation |
-| `docs/` | Architecture, connectors, security, [deployment](docs/deployment.md), [dbt style guide](docs/dbt-style-guide.md) |
+| `docs/` | Architecture, [ingest_data](docs/ingest-data.md), connectors, security, [deployment](docs/deployment.md), [dbt style guide](docs/dbt-style-guide.md) |
 
 ## Quickstart
 

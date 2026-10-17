@@ -1,0 +1,11 @@
+[
+  {
+    "organisation_number": 1000001,
+    "name": "Harbour Trust"
+  },
+  {
+    "organisation_number": 1000002,
+    "name": "Hill School",
+    "activities": ["education", "relief"]
+  }
+]
