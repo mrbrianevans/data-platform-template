@@ -1,0 +1,3 @@
+{"resource_uri": "/company/00000001", "company_name": "Acme Ltd", "company_status": "active"}
+{"resource_uri": "/company/00000002", "company_name": "Beta CIC", "sic_codes": ["88990"]}
+{"resource_uri": "/company/00000001", "company_name": "Acme Limited", "company_status": "active"}
